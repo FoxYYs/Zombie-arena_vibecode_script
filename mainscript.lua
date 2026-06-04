@@ -5,7 +5,7 @@ local Misc = Window:NewTab("Misc")
 local Section = Misc:NewSection("Misc")
 Section:NewButton("nothing")
 
--- 2. СТРУКТУРИРОВАННЫЙ ПАТЧ ДЛЯ МОБИЛЬНОГО ТАЧА И СВОРАЧИВАНИЯ
+-- 2. ДОРАБОТАННЫЙ ИСПРАВЛЕННЫЙ ПАТЧ
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
 
@@ -25,23 +25,21 @@ repeat
     end 
 until TargetGui
 
--- Если устройство поддерживает тач, включаем фикс перетаскивания
-if UserInputService.TouchEnabled then
-    HeaderFrame.Active = true
-    
+-- ФУНКЦИЯ ДЛЯ СЛУЖБЫ ПЕРЕТАСКИВАНИЯ (Универсальная для меню и для кружка)
+local function makeDraggable(clickFrame, moveFrame)
+    clickFrame.Active = true
     local isDragging = false
     local currentTouchInput
     local dragStartPos
     local frameStartPos
     
-    HeaderFrame.InputBegan:Connect(function(input) 
-        if input.UserInputType == Enum.UserInputType.Touch then 
+    clickFrame.InputBegan:Connect(function(input) 
+        if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then 
             isDragging = true
             currentTouchInput = input
             dragStartPos = input.Position
-            frameStartPos = MainFrame.Position
+            frameStartPos = moveFrame.Position
             
-            -- Отслеживаем окончание тача
             input.Changed:Connect(function() 
                 if input.UserInputState == Enum.UserInputState.End then 
                     isDragging = false 
@@ -53,7 +51,7 @@ if UserInputService.TouchEnabled then
     UserInputService.InputChanged:Connect(function(input) 
         if isDragging and input == currentTouchInput then 
             local delta = input.Position - dragStartPos
-            MainFrame.Position = UDim2.new(
+            moveFrame.Position = UDim2.new(
                 frameStartPos.X.Scale, 
                 frameStartPos.X.Offset + delta.X, 
                 frameStartPos.Y.Scale, 
@@ -63,35 +61,42 @@ if UserInputService.TouchEnabled then
     end)
 end
 
--- Создаем кнопку сворачивания (внутри шапки меню)
+-- Включаем тач-драг для главного меню
+if UserInputService.TouchEnabled then
+    makeDraggable(HeaderFrame, MainFrame)
+end
+
+-- Создаем аккуратную кнопку сворачивания '_' в шапке меню
 local CollapseBtn = Instance.new("TextButton", HeaderFrame) 
 CollapseBtn.Name = "CollapseButton" 
-CollapseBtn.Size = UDim2.fromOffset(20, 20) 
-CollapseBtn.Position = UDim2.new(0.91, 0, 0.155, 0) 
-CollapseBtn.BackgroundColor3 = Color3.fromRGB(240, 50, 50) -- Сделал её красной под BloodTheme
-CollapseBtn.Text = "" 
-CollapseBtn.AutoButtonColor = false 
-CollapseBtn.ZIndex = 3 
+CollapseBtn.Size = UDim2.fromOffset(25, 25) 
+CollapseBtn.Position = UDim2.new(0.91, 0, 0.05, 0) -- Выровнял повыше по центру шапки
+CollapseBtn.BackgroundTransparency = 1 -- Полностью прозрачный фон кнопки, чтобы не портить UI
+CollapseBtn.Text = "_" 
+CollapseBtn.Font = Enum.Font.GothamBold
+CollapseBtn.TextSize = 18
+CollapseBtn.TextColor3 = Color3.fromRGB(255, 255, 255) -- Белый символ
+CollapseBtn.ZIndex = 5
 
-local CollapseCorner = Instance.new("UICorner", CollapseBtn)
-CollapseCorner.CornerRadius = UDim.new(1, 0)
-
--- Создаем кнопку разворачивания (кружок, который появится при скрытии)
+-- Создаем красивый сплошной белый кружок с буквой по центру
 local OpenBtn = Instance.new("TextButton", TargetGui) 
 OpenBtn.Visible = false 
-OpenBtn.Text = "◉" 
+OpenBtn.Text = "M" -- Буква по центру (можешь поменять на любую)
 OpenBtn.Font = Enum.Font.GothamBold 
 OpenBtn.TextSize = 16 
-OpenBtn.TextColor3 = Color3.fromRGB(255, 255, 255) 
-OpenBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30) -- Темная кнопка, чтобы не слепила
-OpenBtn.Size = UDim2.fromOffset(30, 30) 
-OpenBtn.AutoButtonColor = false 
+OpenBtn.TextColor3 = Color3.fromRGB(0, 0, 0) -- Чёрный цвет буквы
+OpenBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255) -- Сплошной белый круг
+OpenBtn.Size = UDim2.fromOffset(45, 45) -- Сделал побольше (45х45 пикселей), чтобы удобно было попадать пальцем
+OpenBtn.AutoButtonColor = true 
 OpenBtn.ZIndex = 9999 
 
 local OpenCorner = Instance.new("UICorner", OpenBtn)
-OpenCorner.CornerRadius = UDim.new(1, 0)
+OpenCorner.CornerRadius = UDim.new(1, 0) -- Идеальный круг
 
--- Логика переключения режимов Видимый / Скрытый
+-- Включаем перетаскивание для самого кружка (работает и на мобилках, и на ПК)
+makeDraggable(OpenBtn, OpenBtn)
+
+-- Логика переключения
 local isHidden = false
 
 local function toggleUI(shouldHide) 
@@ -100,15 +105,17 @@ local function toggleUI(shouldHide)
     OpenBtn.Visible = shouldHide 
     
     if shouldHide then 
-        OpenBtn.Position = MainFrame.Position -- Кружок появится ровно там, где было меню
+        -- Появляется ровно в тех координатах на экране, где сейчас находится кнопка сворачивания
+        OpenBtn.Position = UDim2.new(0, CollapseBtn.AbsolutePosition.X, 0, CollapseBtn.AbsolutePosition.Y)
     end 
 end
 
--- Биндим клики на обе кнопки
+-- Биндим клики
 CollapseBtn.MouseButton1Click:Connect(function() 
-    toggleUI(not isHidden) 
+    toggleUI(true) 
 end)
 
 OpenBtn.MouseButton1Click:Connect(function() 
+    -- Проверяем, что это был именно быстрый клик, а не перетаскивание кружка по экрану
     toggleUI(false) 
 end)
