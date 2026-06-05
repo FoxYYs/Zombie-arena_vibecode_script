@@ -773,7 +773,7 @@ local Window = Library:CreateWindow({
 	Title = "Fluent Mobile Fix",
 	Subtitle = "by you",
 	Size = Vector2.new(520, 320),
-	Background = "rbxassetid://0",   -- сюда свой Asset ID арта
+	Background = "rbxassetid://121343473918667",   -- сюда свой Asset ID арта
 	BackgroundTransparency = 0.8,    -- 0 = ярко, 1 = невидимо
 })
 
