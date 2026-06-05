@@ -8,7 +8,7 @@ local Section = Misc:NewSection("Misc")
 Section:NewButton("nothing")
 
 -- ====================================================================
--- 2. СЮДА МЫ ВСТАВИЛИ НАШ ИСПРАВЛЕННЫЙ ПАТЧ (В самый конец скрипта)
+-- 2. СТАБИЛЬНЫЙ ОБНОВЛЕННЫЙ ПАТЧ (БЕЗ УЛЕТАНИЙ И БАГОВ С ТАПОМ)
 -- ====================================================================
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
@@ -29,16 +29,16 @@ repeat
     end 
 until TargetGui
 
--- Универсальная функция перетаскивания (с умным разделением на драг/клик)
-local function makeDraggable(clickFrame, moveFrame, isCircle, onTrueClick)
+-- Переменная, которая скажет кнопке, можно ли кликать
+local canClickCircle = true
+
+-- Функция перетаскивания (теперь со 100% блокировкой клика при движении)
+local function makeDraggable(clickFrame, moveFrame)
     clickFrame.Active = true
     local isDragging = false
     local currentTouchInput
     local dragStartPos
     local frameStartPos
-    
-    local touchStartTime = 0
-    local hasMovedFar = false
 
     clickFrame.InputBegan:Connect(function(input) 
         if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then 
@@ -47,18 +47,13 @@ local function makeDraggable(clickFrame, moveFrame, isCircle, onTrueClick)
             dragStartPos = input.Position
             frameStartPos = moveFrame.Position
             
-            touchStartTime = os.clock()
-            hasMovedFar = false
-            
             input.Changed:Connect(function() 
                 if input.UserInputState == Enum.UserInputState.End then 
                     isDragging = false 
-                    
-                    -- Проверяем: если держал меньше 0.3 сек и палец не улетел далеко — это КЛИК
-                    local touchDuration = os.clock() - touchStartTime
-                    if touchDuration < 0.3 and not hasMovedFar then
-                        if onTrueClick then onTrueClick() end
-                    end
+                    -- Небольшая задержка, чтобы клик не выстрелил сразу после отпускания пальца
+                    task.delay(0.05, function()
+                        canClickCircle = true
+                    end)
                 end 
             end) 
         end 
@@ -68,9 +63,9 @@ local function makeDraggable(clickFrame, moveFrame, isCircle, onTrueClick)
         if isDragging and input == currentTouchInput then 
             local delta = input.Position - dragStartPos
             
-            -- Если палец сдвинулся больше чем на 5 пикселей, считаем это движением
-            if delta.Magnitude > 5 then
-                hasMovedFar = true
+            -- Если сдвинулся хоть немного — это драг, кликать нельзя!
+            if delta.Magnitude > 3 then
+                canClickCircle = false
             end
             
             moveFrame.Position = UDim2.new(
@@ -83,9 +78,9 @@ local function makeDraggable(clickFrame, moveFrame, isCircle, onTrueClick)
     end)
 end
 
--- Включаем тач-драг для главного меню (просто таскать, без кликов)
+-- Включаем тач-драг для главного меню
 if UserInputService.TouchEnabled then
-    makeDraggable(HeaderFrame, MainFrame, false, nil)
+    makeDraggable(HeaderFrame, MainFrame)
 end
 
 -- Создаем аккуратную кнопку сворачивания '_' в шапке меню
@@ -109,35 +104,35 @@ OpenBtn.TextSize = 16
 OpenBtn.TextColor3 = Color3.fromRGB(0, 0, 0) 
 OpenBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255) 
 OpenBtn.Size = UDim2.fromOffset(45, 45) 
+-- Стартовая позиция кружка (справа по центру экрана, чтобы не мешал)
+OpenBtn.Position = UDim2.new(0.85, 0, 0.5, 0)
 OpenBtn.AutoButtonColor = true 
 OpenBtn.ZIndex = 9999 
 
 local OpenCorner = Instance.new("UICorner", OpenBtn)
 OpenCorner.CornerRadius = UDim.new(1, 0)
 
--- Логика сворачивания / развертывания
-local isHidden = false
+-- Включаем перетаскивание для кружка
+makeDraggable(OpenBtn, OpenBtn)
 
+-- ЛОГИКА СВОРАЧИВАНИЯ / РАЗВЕРТЫВАНИЯ
 local function toggleUI(shouldHide) 
-    isHidden = shouldHide 
-    
     if shouldHide then 
-        -- СВОРАЧИВАЕМ: Кружок появляется там, где была кнопка '_'
-        OpenBtn.Position = UDim2.new(0, CollapseBtn.AbsolutePosition.X, 0, CollapseBtn.AbsolutePosition.Y)
+        -- Просто скрываем меню и показываем кружок там, где он СЕЙЧАС находится
         MainFrame.Visible = false 
         OpenBtn.Visible = true 
     else 
-        -- РАЗВОРАЧИВАЕМ: Меню прыгает ровно туда, куда ты перетащил кружок
-        -- Смещаем на 300 пикселей влево, чтобы под пальцем был правый верхний угол меню
-        MainFrame.Position = UDim2.new(0, OpenBtn.AbsolutePosition.X - 300, 0, OpenBtn.AbsolutePosition.Y)
+        -- Просто скрываем кружок и показываем меню там, где оно СЕЙЧАС находится
         OpenBtn.Visible = false 
         MainFrame.Visible = true 
     end 
 end
 
--- Включаем перетаскивание для кружка и вешаем на него функцию открытия при чистом клике
-makeDraggable(OpenBtn, OpenBtn, true, function()
-    toggleUI(false) -- Сработает только при быстром тапе без перетаскивания
+-- Обработка клика по кружку (сработает только если canClickCircle == true)
+OpenBtn.MouseButton1Click:Connect(function()
+    if canClickCircle then
+        toggleUI(false)
+    end
 end)
 
 -- Клик по кнопке '_' в меню всегда сворачивает его
