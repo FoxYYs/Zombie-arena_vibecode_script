@@ -871,12 +871,12 @@ local Window = Library:CreateWindow({
 	Title = "Fluent Mobile Fix",
 	Subtitle = "by you",
 	Size = Vector2.new(520, 320),                 -- компактный мобильный размер
-	Background = "rbxassetid://121343473918667",                -- сюда свой Asset ID арта
+	Background = "rbxassetid://0",                -- сюда свой Asset ID арта
 })
 
 local Misc = Window:AddTab("Misc", "rbxassetid://10734950309") -- иконка шестерёнки
 
-Misc:AddSection("Movement lelelelelelelle")
+Misc:AddSection("Movement")
 
 Misc:AddToggle({
 	Name = "Noclip",
