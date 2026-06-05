@@ -19,10 +19,11 @@ game:GetService("RunService").Stepped:Connect(function()
     end
 end)
 
-MiscSection:CreateToggle("Noclip", function(s) noclip = s end)
-MiscSection:CreateSlider("WalkSpeed", 16, 250, function(value)
+MiscSection:CreateToggle("Noclip", "", function(s) noclip = s end)
+MiscSection:CreateSlider("WalkSpeed", "", 16, 250, function(value)
     game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = value
 end)
+
 
 
 -- ====================================================================

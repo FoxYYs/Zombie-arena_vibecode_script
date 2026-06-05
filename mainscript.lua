@@ -21,37 +21,23 @@ end)
 
 MiscSection:CreateToggle("Noclip", "", function(s) noclip = s end)
 MiscSection:CreateSlider("WalkSpeed", "", 16, 250, function(value)
-    game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = value
+    local replyChar = game.Players.LocalPlayer.Character
+    if replyChar and replyChar:FindFirstChild("Humanoid") then
+        replyChar.Humanoid.WalkSpeed = value
+    end
 end)
 
 
-
 -- ====================================================================
--- 2. СТАБИЛЬНЫЙ ОБНОВЛЕННЫЙ ПАТЧ (БЕЗ УЛЕТАНИЙ И БАГОВ С ТАПОМ)
+-- 2. СТАБИЛЬНЫЙ ОБНОВЛЕННЫЙ ПАТЧ (БЕЗ ФРИЗОВ И ЗАВИСАНИЙ)
 -- ====================================================================
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
 
 local TargetGui, MainFrame, HeaderFrame
-
--- Цикл безопасного поиска UI библиотеки в CoreGui
-repeat 
-    task.wait() 
-    for _, child in ipairs(CoreGui:GetChildren()) do 
-        local main = child:FindFirstChild("Main") 
-        if child:IsA("ScreenGui") and main and main:FindFirstChild("MainHeader") then 
-            TargetGui = child
-            MainFrame = main
-            HeaderFrame = main.MainHeader 
-            break 
-        end 
-    end 
-until TargetGui
-
--- Переменная, которая скажет кнопке, можно ли кликать
 local canClickCircle = true
 
--- Функция перетаскивания (теперь со 100% блокировкой клика при движении)
+-- Функция перетаскивания (со 100% блокировкой клика при движении)
 local function makeDraggable(clickFrame, moveFrame)
     clickFrame.Active = true
     local isDragging = false
@@ -69,7 +55,6 @@ local function makeDraggable(clickFrame, moveFrame)
             input.Changed:Connect(function() 
                 if input.UserInputState == Enum.UserInputState.End then 
                     isDragging = false 
-                    -- Небольшая задержка, чтобы клик не выстрелил сразу после отпускания пальца
                     task.delay(0.05, function()
                         canClickCircle = true
                     end)
@@ -82,7 +67,6 @@ local function makeDraggable(clickFrame, moveFrame)
         if isDragging and input == currentTouchInput then 
             local delta = input.Position - dragStartPos
             
-            -- Если сдвинулся хоть немного — это драг, кликать нельзя!
             if delta.Magnitude > 3 then
                 canClickCircle = false
             end
@@ -97,64 +81,94 @@ local function makeDraggable(clickFrame, moveFrame)
     end)
 end
 
--- Включаем тач-драг для главного меню
-if UserInputService.TouchEnabled then
-    makeDraggable(HeaderFrame, MainFrame)
-end
+-- Функция инициализации кастомного управления (кнопки сворачивания)
+local function InitializeCollapseSystem()
+    -- Создаем аккуратную кнопку сворачивания '_' в шапке меню
+    local CollapseBtn = Instance.new("TextButton", HeaderFrame) 
+    CollapseBtn.Name = "CollapseButton" 
+    CollapseBtn.Size = UDim2.fromOffset(25, 25) 
+    CollapseBtn.Position = UDim2.new(0.91, 0, 0.05, 0) 
+    CollapseBtn.BackgroundTransparency = 1 
+    CollapseBtn.Text = "_" 
+    CollapseBtn.Font = Enum.Font.GothamBold
+    CollapseBtn.TextSize = 18
+    CollapseBtn.TextColor3 = Color3.fromRGB(255, 255, 255) 
+    CollapseBtn.ZIndex = 5
 
--- Создаем аккуратную кнопку сворачивания '_' в шапке меню
-local CollapseBtn = Instance.new("TextButton", HeaderFrame) 
-CollapseBtn.Name = "CollapseButton" 
-CollapseBtn.Size = UDim2.fromOffset(25, 25) 
-CollapseBtn.Position = UDim2.new(0.91, 0, 0.05, 0) 
-CollapseBtn.BackgroundTransparency = 1 
-CollapseBtn.Text = "_" 
-CollapseBtn.Font = Enum.Font.GothamBold
-CollapseBtn.TextSize = 18
-CollapseBtn.TextColor3 = Color3.fromRGB(255, 255, 255) 
-CollapseBtn.ZIndex = 5
+    -- Создаем красивый сплошной белый кружок с буквой по центру
+    local OpenBtn = Instance.new("TextButton", TargetGui) 
+    OpenBtn.Visible = false 
+    OpenBtn.Text = "M" 
+    OpenBtn.Font = Enum.Font.GothamBold 
+    OpenBtn.TextSize = 16 
+    OpenBtn.TextColor3 = Color3.fromRGB(0, 0, 0) 
+    OpenBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255) 
+    OpenBtn.Size = UDim2.fromOffset(45, 45) 
+    OpenBtn.Position = UDim2.new(0.85, 0, 0.5, 0)
+    OpenBtn.AutoButtonColor = true 
+    OpenBtn.ZIndex = 9999 
 
--- Создаем красивый сплошной белый кружок с буквой по центру
-local OpenBtn = Instance.new("TextButton", TargetGui) 
-OpenBtn.Visible = false 
-OpenBtn.Text = "M" 
-OpenBtn.Font = Enum.Font.GothamBold 
-OpenBtn.TextSize = 16 
-OpenBtn.TextColor3 = Color3.fromRGB(0, 0, 0) 
-OpenBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255) 
-OpenBtn.Size = UDim2.fromOffset(45, 45) 
--- Стартовая позиция кружка (справа по центру экрана, чтобы не мешал)
-OpenBtn.Position = UDim2.new(0.85, 0, 0.5, 0)
-OpenBtn.AutoButtonColor = true 
-OpenBtn.ZIndex = 9999 
+    local OpenCorner = Instance.new("UICorner", OpenBtn)
+    OpenCorner.CornerRadius = UDim.new(1, 0)
 
-local OpenCorner = Instance.new("UICorner", OpenBtn)
-OpenCorner.CornerRadius = UDim.new(1, 0)
+    -- Включаем перетаскивание для кружка
+    makeDraggable(OpenBtn, OpenBtn)
 
--- Включаем перетаскивание для кружка
-makeDraggable(OpenBtn, OpenBtn)
-
--- ЛОГИКА СВОРАЧИВАНИЯ / РАЗВЕРТЫВАНИЯ
-local function toggleUI(shouldHide) 
-    if shouldHide then 
-        -- Просто скрываем меню и показываем кружок там, где он СЕЙЧАС находится
-        MainFrame.Visible = false 
-        OpenBtn.Visible = true 
-    else 
-        -- Просто скрываем кружок и показываем меню там, где оно СЕЙЧАС находится
-        OpenBtn.Visible = false 
-        MainFrame.Visible = true 
-    end 
-end
-
--- Обработка клика по кружку (сработает только если canClickCircle == true)
-OpenBtn.MouseButton1Click:Connect(function()
-    if canClickCircle then
-        toggleUI(false)
+    -- ЛОГИКА СВОРАЧИВАНИЯ / РАЗВЕРТЫВАНИЯ
+    local function toggleUI(shouldHide) 
+        if shouldHide then 
+            MainFrame.Visible = false 
+            OpenBtn.Visible = true 
+        else 
+            OpenBtn.Visible = false 
+            MainFrame.Visible = true 
+        end 
     end
-end)
 
--- Клик по кнопке '_' в меню всегда сворачивает его
-CollapseBtn.MouseButton1Click:Connect(function() 
-    toggleUI(true) 
-end)
+    OpenBtn.MouseButton1Click:Connect(function()
+        if canClickCircle then
+            toggleUI(false)
+        end
+    end)
+
+    CollapseBtn.MouseButton1Click:Connect(function() 
+        toggleUI(true) 
+    end)
+
+    -- Включаем тач-драг для главного меню, если мы на мобилке
+    if UserInputService.TouchEnabled then
+        makeDraggable(HeaderFrame, MainFrame)
+    end
+end
+
+-- Безопасный асинхронный поиск UI библиотеки без фризов
+local function checkGui(child)
+    if child:IsA("ScreenGui") then
+        local main = child:WaitForChild("Main", 2) -- Ждем "Main" максимум 2 секунды, чтобы не вешать поток
+        if main and main:FindFirstChild("MainHeader") then 
+            TargetGui = child
+            MainFrame = main
+            HeaderFrame = main.MainHeader
+            return true
+        end
+    end
+    return false
+end
+
+-- Проверяем то, что уже загрузилось
+for _, child in ipairs(CoreGui:GetChildren()) do
+    if checkGui(child) then break end
+end
+
+-- Если не нашли сразу, подписываемся на появление новых элементов (идеально для асинхронного Kavo UI)
+if not TargetGui then
+    local connection
+    connection = CoreGui.ChildAdded:Connect(function(child)
+        if checkGui(child) then
+            connection:Disconnect() -- Отключаем событие, как только нашли нужный UI
+            InitializeCollapseSystem()
+        end
+    end)
+else
+    InitializeCollapseSystem()
+end
