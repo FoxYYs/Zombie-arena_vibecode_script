@@ -2,7 +2,7 @@
 -- 1. ТВОЙ ИСХОДНЫЙ КОД (Создание меню и вкладок)
 -- ====================================================================
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
-local Window = Library.CreateLib("Tutorial", "Midnight")
+local Window = Library.CreateLib("Tutorial", "Synapse")
 local Misc = Window:NewTab("Misc")
 local Section = Misc:NewSection("Misc")
 Section:NewButton("nothing")
