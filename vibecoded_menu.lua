@@ -793,37 +793,4 @@ function Library:CreateWindow(config)
 
 	return Window
 end
-
---==================================================================
--- ПРИМЕР ИСПОЛЬЗОВАНИЯ
---==================================================================
-local Window = Library:CreateWindow({
-	Title = "Fluent Mobile Fix",
-	Subtitle = "by you",
-	Size = Vector2.new(520, 320),
-	Background = "rbxassetid://121343473918667",   -- сюда свой Asset ID арта
-	BackgroundTransparency = 0.8,    -- 0 = ярко, 1 = невидимо
-})
-
-local Misc = Window:AddTab("Misc", "rbxassetid://10734950309")
-
-Misc:AddSection("Movement")
-Misc:AddToggle({ Name = "Noclip", Default = false, Callback = function(s) print("Noclip:", s) end })
-Misc:AddSlider({
-	Name = "WalkSpeed", Description = "Скорость персонажа",
-	Min = 0, Max = 100, Default = 16,
-	Callback = function(v)
-		local c = LocalPlayer.Character
-		if c and c:FindFirstChildOfClass("Humanoid") then
-			c:FindFirstChildOfClass("Humanoid").WalkSpeed = v
-		end
-	end,
-})
-Misc:AddButton({ Name = "Respawn", Callback = function() print("Кнопка нажата") end })
-Misc:AddTextbox({ Name = "Никнейм", Placeholder = "Введите текст...", Callback = function(t) print(t) end })
-Misc:AddDropdown({
-	Name = "Режим", Options = { "Лёгкий", "Средний", "Сложный" }, Default = "Средний",
-	Callback = function(o) print("Выбрано:", o) end,
-})
-
 return Library
