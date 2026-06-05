@@ -2,28 +2,13 @@
 -- 1. ТВОЙ ИСХОДНЫЙ КОД (Создание меню и вкладок)
 -- ====================================================================
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
-local Window = Library.CreateLib("Vibecoded shit", "DarkTheme")
--- ===== MISC (SIMPLE FUNCS) =====
+local Window = Library.CreateLib("Tutorial", "DarkTheme")
 local Misc = Window:NewTab("Misc")
-local MiscSection = Misc:NewSection("Misc")
-
--- noclip logic
-local noclip = false
-game:GetService("RunService").Stepped:Connect(function()
-    if not noclip then return end
-    local c = game.Players.LocalPlayer.Character
-    if c then
-        if c:FindFirstChild("HumanoidRootPart") then c.HumanoidRootPart.CanCollide = false end
-        if c:FindFirstChild("Torso") then c.Torso.CanCollide = false end
-        if c:FindFirstChild("UpperTorso") then c.UpperTorso.CanCollide = false end
-    end
-end)
-
-MiscSection:CreateToggle("Noclip", function(s) noclip = s end)
-MiscSection:CreateSlider("WalkSpeed", 16, 250, function(value)
+-- ===== MISC (SIMPLE FUNCS) =====
+local Section = Misc:NewSection("Misc")
+Section:CreateSlider("WalkSpeed", 16, 250, function(value)
     game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = value
 end)
-
 
 -- ====================================================================
 -- 2. СТАБИЛЬНЫЙ ОБНОВЛЕННЫЙ ПАТЧ (БЕЗ УЛЕТАНИЙ И БАГОВ С ТАПОМ)
