@@ -9,46 +9,11 @@ local Window = Library:CreateWindow({
 	BackgroundTransparency = 0.8,
 })
 
--- COMBAT --
-local Combat = Window:AddTab("Combat")
-Combat:AddSection("Kill Aura")
-
--- Тоггл киллауры
-Combat:AddToggle({
-    Name = "Killaura",
-    Default = false,
-    Callback = function(state)
-        KillauraMod.Enabled = state
-    end
-})
-
--- Ползунок радиуса
-Combat:AddSlider({
-    Name = "Attack Radius",
-    Min = 10,
-    Max = 150,
-    Default = 60,
-    Callback = function(value)
-        KillauraMod.Radius = value
-    end
-})
-
--- Ползунок задержки тика (в миллисекундах, пересчитывается в секунды для модуля)
-Combat:AddSlider({
-    Name = "Tick Delay (ms)",
-    Min = 5,
-    Max = 100,
-    Default = 15,
-    Callback = function(value)
-        KillauraMod.TickDelay = value / 100
-    end
-})
-
--- MISC --
+-- Создаём вкладку и секцию
 local Misc = Window:AddTab("Misc")
 Misc:AddSection("Misc")
 
--- Noclip logic
+-- Логика Noclip (универсальная и неубиваемая)
 local noclip = false
 local runService = game:GetService("RunService")
 local player = game.Players.LocalPlayer

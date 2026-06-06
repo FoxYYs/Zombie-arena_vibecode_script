@@ -1,0 +1,72 @@
+local CONFIG = {
+    ENABLED = true,
+    RADIUS = 100,
+    DAMAGE = 999999999,
+    TICK_DELAY = 0.15
+}
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+-- Ищем контроллер по факту наличия критических таблиц
+local function findController()
+    local getgc = getgc or (getreg and function() return getreg() end)
+    if not getgc then return nil end
+
+    for _, v in pairs(getgc(true)) do
+        -- Ищем таблицу, у которой есть именно "Zombies" и "Remotes"
+        if type(v) == "table" and rawget(v, "Zombies") and rawget(v, "Remotes") then
+            -- Проверяем, что это не UI, а именно игровая логика
+            if type(v.Zombies) == "table" and type(v.Remotes) == "table" then
+                return v
+            end
+        end
+    end
+    return nil
+end
+
+local controller = nil
+
+task.spawn(function()
+    print("[-] Скрипт запущен, ищем контроллер...")
+    while not controller do
+        controller = findController()
+        if not controller then 
+            task.wait(1) -- Ждем по-тихому
+        else
+            print("[+] Контроллер найден!")
+        end
+    end
+
+    while true do
+        task.wait(CONFIG.TICK_DELAY)
+        if not CONFIG.ENABLED then continue end
+
+        local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        if root and controller.Remotes.Damage then
+            -- Используем встроенный метод поиска, раз он есть в файле
+            -- Если GetZombiesInRadius не находит, используем обход через Zombies напрямую
+            local success, nearby = pcall(function()
+                return controller:GetZombiesInRadius(root.Position, CONFIG.RADIUS, false)
+            end)
+
+            if success and type(nearby) == "table" then
+                for _, data in ipairs(nearby) do
+                    if data.Id then
+                        controller.Remotes.Damage:FireServer(data.Id, CONFIG.DAMAGE)
+                    end
+                end
+            else
+                -- Резервный обход, если их метод вылетает
+                for id, z in pairs(controller.Zombies) do
+                    if type(z) == "table" and not z.IsDying then
+                        local zPos = z.CurrentPosition or (z.Model and z.Model:GetPivot().Position)
+                        if zPos and (zPos - root.Position).Magnitude <= CONFIG.RADIUS then
+                            controller.Remotes.Damage:FireServer(id, CONFIG.DAMAGE)
+                        end
+                    end
+                end
+            end
+        end
+    end
+end)
