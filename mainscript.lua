@@ -10,8 +10,8 @@ local Window = Library:CreateWindow({
 })
 
 local Icons = {
-    Combat = "rbxassetid://10747372992", -- Swords
-    Misc = "rbxassetid://10723319865", -- Component
+    Combat = "rbxassetid://10734975486", -- Sword
+    Misc = "rbxassetid://10734950309", -- Component
     Settings = "rbxassetid://10734950020"  -- Settings
 }
 
