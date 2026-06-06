@@ -18,7 +18,7 @@ Combat:AddToggle({
     Name = "Killaura",
     Default = false,
     Callback = function(state)
-        KillauraMod.Enabled = state
+        Killaura.Enabled = state
     end
 })
 
@@ -29,18 +29,18 @@ Combat:AddSlider({
     Max = 150,
     Default = 60,
     Callback = function(value)
-        KillauraMod.Radius = value
+        Killaura.Radius = value
     end
 })
 
 -- Ползунок задержки тика (в миллисекундах, пересчитывается в секунды для модуля)
 Combat:AddSlider({
-    Name = "Tick Delay (ms)",
-    Min = 5,
-    Max = 100,
-    Default = 15,
+    Name = "Tick Delay",
+    Min = 0.1,
+    Max = 10,
+    Default = 1,
     Callback = function(value)
-        KillauraMod.TickDelay = value / 100
+        Killaura.TickDelay = value
     end
 })
 
