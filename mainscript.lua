@@ -17,10 +17,7 @@ local Icons = {
 
 
 -- COMBAT --
-local Combat = Window:CreateTab({
-    Name = "Combat",
-    Icon = Icons.Combat
-})
+local Combat = Window:AddTab("Misc", Icons.Combat)
 Combat:AddSection("Kill Aura")
 
 -- Тоггл киллауры
@@ -55,10 +52,7 @@ Combat:AddSlider({
 })
 
 -- MISC --
-local Misc = Window:CreateTab({
-    Name = "Misc",
-    Icon = Icons.Misc
-})
+local Misc = Window:AddTab("Misc", Icons.Misc)
 Misc:AddSection("Misc")
 
 -- Noclip logic
