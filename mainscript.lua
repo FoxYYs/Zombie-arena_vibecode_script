@@ -9,8 +9,18 @@ local Window = Library:CreateWindow({
 	BackgroundTransparency = 0.8,
 })
 
+local Icons = {
+    Combat = "rbxassetid://10747372992", -- Swords
+    Misc = "rbxassetid://10723319865", -- Component
+    Settings = "rbxassetid://10734950020"  -- Settings
+}
+
+
 -- COMBAT --
-local Combat = Window:AddTab("Combat")
+local Combat = Window:CreateTab({
+    Name = "Combat",
+    Icon = Icons.Combat
+})
 Combat:AddSection("Kill Aura")
 
 -- Тоггл киллауры
@@ -45,7 +55,10 @@ Combat:AddSlider({
 })
 
 -- MISC --
-local Misc = Window:AddTab("Misc")
+local Misc = Window:CreateTab({
+    Name = "Misc",
+    Icon = Icons.Misc
+})
 Misc:AddSection("Misc")
 
 -- Noclip logic
