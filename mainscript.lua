@@ -17,7 +17,7 @@ local Icons = {
 
 
 -- COMBAT --
-local Combat = Window:AddTab("Misc", Icons.Combat)
+local Combat = Window:AddTab("Combat", Icons.Combat)
 Combat:AddSection("Kill Aura")
 
 -- Тоггл киллауры
