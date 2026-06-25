@@ -103,8 +103,8 @@ local Settings = Window:AddTab("Settings", Icons.Settings)
 Settings:AddSection("Themes")
 
 -- Создаем дропдаун для выбора темы
-local ThemeDropdown = Tab:AddDropdown({
-    Name = "Тема интерфейса",
+local ThemeDropdown = Settings:AddDropdown({
+    Name = "Themes",
     Default = "Ruby", -- тема по умолчанию
     Options = {"Ruby", "Dark", "Aqua", "Amethyst"},
     Callback = function(selectedTheme)
