@@ -104,7 +104,7 @@ Settings:AddSection("Themes")
 
 -- Создаем дропдаун для выбора темы
 local ThemeDropdown = Settings:AddDropdown({
-    Name = "Тема интерфейса",
+    Name = "Themes",
     Default = "Ruby", -- тема по умолчанию
     Options = {"Ruby", "Dark", "Aqua", "Amethyst"},
     Callback = function(selectedTheme)
