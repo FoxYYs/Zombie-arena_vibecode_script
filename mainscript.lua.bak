@@ -102,12 +102,12 @@ Misc:AddSlider({
 local Settings = Window:AddTab("Settings", Icons.Settings)
 Settings:AddSection("Themes")
 
--- Создаем дропдаун для выбора темы
-local ThemeDropdown = Settings:AddDropdown({
-    Name = "Themes",
-    Default = "Ruby", -- тема по умолчанию
-    Options = {"Ruby", "Dark", "Aqua", "Amethyst"},
-    Callback = function(selectedTheme)
+-- Передаем параметры по очереди, а не в одной таблице
+local ThemeDropdown = Settings:AddDropdown(
+    "Themes", -- Имя (name)
+    "Ruby",   -- Дефолтное значение (default)
+    {"Ruby", "Dark", "Aqua", "Amethyst"}, -- Список (options)
+    function(selectedTheme) -- Функция (callback)
         Library:SetTheme(selectedTheme)
     end
-})
+)

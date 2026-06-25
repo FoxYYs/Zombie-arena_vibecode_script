@@ -102,12 +102,12 @@ Misc:AddSlider({
 local Settings = Window:AddTab("Settings", Icons.Settings)
 Settings:AddSection("Themes")
 
--- Передаем параметры по очереди, а не в одной таблице
-local ThemeDropdown = Settings:AddDropdown(
-    "Themes", -- Имя (name)
-    "Ruby",   -- Дефолтное значение (default)
-    {"Ruby", "Dark", "Aqua", "Amethyst"}, -- Список (options)
-    function(selectedTheme) -- Функция (callback)
+-- Возвращаем правильный формат (одна таблица)
+local ThemeDropdown = Settings:AddDropdown({
+    Name = "Themes",
+    Default = "Ruby",
+    Options = {"Ruby", "Dark", "Aqua", "Amethyst"},
+    Callback = function(selectedTheme)
         Library:SetTheme(selectedTheme)
     end
-)
+})
