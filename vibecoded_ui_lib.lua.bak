@@ -25,138 +25,6 @@ local Theme = {
 	Knob         = Color3.fromRGB(245, 235, 236),
 	Close        = Color3.fromRGB(196, 44, 44),
 }
---==================================================================
--- THEME MANAGER
---==================================================================
-local ThemeManager = {}
-ThemeManager.Registry = {}
-ThemeManager.Current  = "Ruby"
-ThemeManager.TweenTime = 0.25
-
-ThemeManager.Themes = {
-    Dark = {
-        Background   = Color3.fromRGB(24, 24, 28),
-        Topbar       = Color3.fromRGB(30, 30, 34),
-        Sidebar      = Color3.fromRGB(20, 20, 24),
-        Element      = Color3.fromRGB(38, 38, 44),
-        ElementHover = Color3.fromRGB(50, 50, 58),
-        Stroke       = Color3.fromRGB(70, 70, 80),
-        Accent       = Color3.fromRGB(120, 140, 220),
-        Text         = Color3.fromRGB(235, 235, 240),
-        SubText      = Color3.fromRGB(150, 150, 160),
-        Knob         = Color3.fromRGB(245, 245, 250),
-        Close        = Color3.fromRGB(200, 70, 70),
-    },
-    Ruby = {
-        Background   = Color3.fromRGB(38, 10, 12),
-        Topbar       = Color3.fromRGB(46, 13, 15),
-        Sidebar      = Color3.fromRGB(30, 8, 10),
-        Element      = Color3.fromRGB(58, 18, 20),
-        ElementHover = Color3.fromRGB(74, 24, 27),
-        Stroke       = Color3.fromRGB(110, 40, 45),
-        Accent       = Color3.fromRGB(196, 64, 64),
-        Text         = Color3.fromRGB(240, 225, 226),
-        SubText      = Color3.fromRGB(180, 140, 142),
-        Knob         = Color3.fromRGB(245, 235, 236),
-        Close        = Color3.fromRGB(196, 44, 44),
-    },
-    Aqua = {
-        Background   = Color3.fromRGB(10, 28, 38),
-        Topbar       = Color3.fromRGB(13, 34, 46),
-        Sidebar      = Color3.fromRGB(8, 22, 30),
-        Element      = Color3.fromRGB(18, 46, 58),
-        ElementHover = Color3.fromRGB(24, 60, 74),
-        Stroke       = Color3.fromRGB(40, 95, 110),
-        Accent       = Color3.fromRGB(64, 180, 196),
-        Text         = Color3.fromRGB(225, 238, 240),
-        SubText      = Color3.fromRGB(140, 175, 180),
-        Knob         = Color3.fromRGB(235, 245, 246),
-        Close        = Color3.fromRGB(44, 160, 176),
-    },
-    Amethyst = {
-        Background   = Color3.fromRGB(28, 14, 40),
-        Topbar       = Color3.fromRGB(34, 18, 48),
-        Sidebar      = Color3.fromRGB(22, 10, 32),
-        Element      = Color3.fromRGB(46, 24, 62),
-        ElementHover = Color3.fromRGB(60, 32, 80),
-        Stroke       = Color3.fromRGB(95, 55, 130),
-        Accent       = Color3.fromRGB(170, 110, 230),
-        Text         = Color3.fromRGB(235, 225, 245),
-        SubText      = Color3.fromRGB(170, 145, 195),
-        Knob         = Color3.fromRGB(245, 235, 250),
-        Close        = Color3.fromRGB(180, 80, 200),
-    },
-}
-
-ThemeManager._colorToKey = {}
-
-local function rebuildColorMap()
-    table.clear(ThemeManager._colorToKey)
-    for key, color in pairs(Theme) do
-        if typeof(color) == "Color3" then
-            ThemeManager._colorToKey[tostring(color)] = key
-        end
-    end
-end
-rebuildColorMap()
-
--- Нам также понадобится оригинальная копия дефолтных цветов, чтобы MouseEnter читал из нее
-local OriginalHoverColors = {
-    Element = Theme.Element,
-    ElementHover = Theme.ElementHover,
-}
-
-function ThemeManager:ResolveKey(color)
-    if typeof(color) ~= "Color3" then return nil end
-    return self._colorToKey[tostring(color)]
-end
-
-function ThemeManager:Register(instance, property, key)
-    if not instance or not property or not key then return end
-    if not Theme[key] then return end
-    table.insert(self.Registry, { Instance = instance, Property = property, Key = key })
-
-    instance.Destroying:Connect(function()
-        for i = #self.Registry, 1, -1 do
-            if self.Registry[i].Instance == instance then
-                table.remove(self.Registry, i)
-            end
-        end
-    end)
-end
-
-function ThemeManager:SetTheme(themeNameOrTable)
-    local newTheme
-    if typeof(themeNameOrTable) == "string" then
-        newTheme = self.Themes[themeNameOrTable]
-        assert(newTheme, "[ThemeManager] Неизвестная тема: " .. themeNameOrTable)
-        self.Current = themeNameOrTable
-    elseif typeof(themeNameOrTable) == "table" then
-        newTheme = themeNameOrTable
-        self.Current = "Custom"
-    else
-        error("[ThemeManager] SetTheme ожидает string или table")
-    end
-
-    for key, color in pairs(newTheme) do
-        Theme[key] = color
-    end
-
-    rebuildColorMap()
-    OriginalHoverColors.Element = Theme.Element
-    OriginalHoverColors.ElementHover = Theme.ElementHover
-
-    local info = TweenInfo.new(self.TweenTime, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-    for _, entry in ipairs(self.Registry) do
-        local target = Theme[entry.Key]
-        if target then
-            pcall(function()
-                TweenService:Create(entry.Instance, info, { [entry.Property] = target }):Play()
-            end)
-        end
-    end
-end
-
 
 local SEARCH_ICON        = "rbxassetid://3926305904"
 local SEARCH_RECT_OFFSET = Vector2.new(964, 324)
@@ -168,31 +36,14 @@ local SEARCH_RECT_SIZE   = Vector2.new(36, 36)
 local Util = {}
 
 function Util.Create(class, props, children)
-    local obj = Instance.new(class)
-    for k, v in pairs(props or {}) do
-        if k ~= "Parent" then 
-            obj[k] = v 
-            if typeof(v) == "Color3" then
-                -- Костыль для Hover-эффектов: если при создании прилетает фиксированный дефолтный ElementHover,
-                -- мы насильно связываем его с ключом "ElementHover", чтобы элемент обновлялся при смене темы.
-                local key
-                if v == OriginalHoverColors.ElementHover then
-                    key = "ElementHover"
-                else
-                    key = ThemeManager:ResolveKey(v)
-                end
-                
-                if key then
-                    ThemeManager:Register(obj, k, key)
-                end
-            end
-        end
-    end
-    for _, child in ipairs(children or {}) do child.Parent = obj end
-    if props and props.Parent then obj.Parent = props.Parent end
-    return obj
+	local obj = Instance.new(class)
+	for k, v in pairs(props or {}) do
+		if k ~= "Parent" then obj[k] = v end
+	end
+	for _, child in ipairs(children or {}) do child.Parent = obj end
+	if props and props.Parent then obj.Parent = props.Parent end
+	return obj
 end
-
 
 function Util.Corner(parent, radius)
 	return Util.Create("UICorner", { Parent = parent, CornerRadius = UDim.new(0, radius or 7) })
@@ -252,10 +103,6 @@ end
 --==================================================================
 local Library = {}
 Library.__index = Library
-
-function Library:SetTheme(themeNameOrTable)
-    ThemeManager:SetTheme(themeNameOrTable)
-end
 
 function Library:CreateWindow(config)
 	config = config or {}
