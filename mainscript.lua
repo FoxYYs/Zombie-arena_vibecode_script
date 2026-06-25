@@ -98,16 +98,3 @@ Misc:AddSlider({
 		end
 	end
 })
-
-local Settings = Window:AddTab("Settings", Icons.Settings)
-Settings:AddSection("Themes")
-
--- Возвращаем правильный формат (одна таблица)
-local ThemeDropdown = Settings:AddDropdown({
-    Name = "Themes",
-    Default = "Ruby",
-    Options = {"Ruby", "Dark", "Aqua", "Amethyst"},
-    Callback = function(selectedTheme)
-        Library:SetTheme(selectedTheme)
-    end
-})
